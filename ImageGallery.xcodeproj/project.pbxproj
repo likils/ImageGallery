@@ -9,21 +9,27 @@
 /* Begin PBXBuildFile section */
 		249921B6255E675500815FEF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249921B5255E675500815FEF /* AppDelegate.swift */; };
 		249921B8255E675500815FEF /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249921B7255E675500815FEF /* SceneDelegate.swift */; };
-		249921BA255E675500815FEF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249921B9255E675500815FEF /* ViewController.swift */; };
 		249921BD255E675500815FEF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 249921BB255E675500815FEF /* Main.storyboard */; };
 		249921BF255E675E00815FEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 249921BE255E675E00815FEF /* Assets.xcassets */; };
 		249921C2255E675E00815FEF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 249921C0255E675E00815FEF /* LaunchScreen.storyboard */; };
+		249921CA255E682D00815FEF /* ImageGalleryCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249921C9255E682D00815FEF /* ImageGalleryCollectionViewController.swift */; };
+		249921CC255E68DA00815FEF /* GalleriesTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249921CB255E68DA00815FEF /* GalleriesTableViewController.swift */; };
+		249921CE255E695E00815FEF /* ImageCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249921CD255E695E00815FEF /* ImageCollectionViewCell.swift */; };
+		249921D0255E8ACB00815FEF /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249921CF255E8ACB00815FEF /* Utilities.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		249921B2255E675500815FEF /* ImageGallery.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageGallery.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		249921B5255E675500815FEF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		249921B7255E675500815FEF /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		249921B9255E675500815FEF /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		249921BC255E675500815FEF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		249921BE255E675E00815FEF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		249921C1255E675E00815FEF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		249921C3255E675E00815FEF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		249921C9255E682D00815FEF /* ImageGalleryCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGalleryCollectionViewController.swift; sourceTree = "<group>"; };
+		249921CB255E68DA00815FEF /* GalleriesTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleriesTableViewController.swift; sourceTree = "<group>"; };
+		249921CD255E695E00815FEF /* ImageCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCollectionViewCell.swift; sourceTree = "<group>"; };
+		249921CF255E8ACB00815FEF /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,7 +64,10 @@
 			children = (
 				249921B5255E675500815FEF /* AppDelegate.swift */,
 				249921B7255E675500815FEF /* SceneDelegate.swift */,
-				249921B9255E675500815FEF /* ViewController.swift */,
+				249921CF255E8ACB00815FEF /* Utilities.swift */,
+				249921CB255E68DA00815FEF /* GalleriesTableViewController.swift */,
+				249921C9255E682D00815FEF /* ImageGalleryCollectionViewController.swift */,
+				249921CD255E695E00815FEF /* ImageCollectionViewCell.swift */,
 				249921BB255E675500815FEF /* Main.storyboard */,
 				249921BE255E675E00815FEF /* Assets.xcassets */,
 				249921C0255E675E00815FEF /* LaunchScreen.storyboard */,
@@ -94,7 +103,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1170;
-				LastUpgradeCheck = 1170;
+				LastUpgradeCheck = 1220;
 				ORGANIZATIONNAME = Nik;
 				TargetAttributes = {
 					249921B1255E675500815FEF = {
@@ -138,7 +147,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				249921BA255E675500815FEF /* ViewController.swift in Sources */,
+				249921D0255E8ACB00815FEF /* Utilities.swift in Sources */,
+				249921CC255E68DA00815FEF /* GalleriesTableViewController.swift in Sources */,
+				249921CE255E695E00815FEF /* ImageCollectionViewCell.swift in Sources */,
+				249921CA255E682D00815FEF /* ImageGalleryCollectionViewController.swift in Sources */,
 				249921B6255E675500815FEF /* AppDelegate.swift in Sources */,
 				249921B8255E675500815FEF /* SceneDelegate.swift in Sources */,
 			);
@@ -192,6 +204,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -216,7 +229,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.7;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -252,6 +265,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -270,7 +284,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.7;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
