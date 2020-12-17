@@ -10,10 +10,28 @@ import UIKit
 
 class ImageGalleryCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
     
-    var imageUrlCollection = [(url: URL, aspectRatio: CGFloat)]()
+    weak var galleriesTVC: GalleriesTableViewController!
+    private lazy var _collection = collection {
+        didSet { collection = _collection }
+    }
+    private var collection: [(url: URL, aspectRatio: CGFloat)] {
+        get {
+            if galleriesTVC.galleriesImages[title!] != nil {
+                return galleriesTVC.galleriesImages[title!]!
+            } else {
+                return [(url: URL, aspectRatio: CGFloat)]()
+            }
+        }
+        set { galleriesTVC.galleriesImages[title!] = newValue }
+    }
 
     let spaceAroundItems: CGFloat = 8
-    let cellsInRow: CGFloat = 3
+    var cellsInRow: CGFloat = 3
+    var cellWidth: CGFloat! {
+        didSet {
+            cellsInRow = collectionView.bounds.size.width/cellWidth.rounded(.down)
+        }
+    }
     
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     
@@ -28,22 +46,40 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
         flowLayout.sectionInset = UIEdgeInsets(top: spaceAroundItems, left: spaceAroundItems, bottom: spaceAroundItems, right: spaceAroundItems)
         flowLayout.minimumLineSpacing = spaceAroundItems
         flowLayout.minimumInteritemSpacing = spaceAroundItems
+        
+        cellWidth = (collectionView.bounds.size.width - 0.1 - spaceAroundItems*(cellsInRow+1)) / cellsInRow
+        
+        let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(resizeCells))
+        collectionView.addGestureRecognizer(pinchGesture)
+    }
+    
+    // MARK: - Actions
+    @objc func resizeCells(_ sender: UIPinchGestureRecognizer) {
+        switch sender.state {
+            case .changed, .ended:
+                if (cellWidth * sender.scale) <= (collectionView.bounds.size.width - spaceAroundItems*2) {
+                    cellWidth *= sender.scale
+                    flowLayout.invalidateLayout()
+                    collectionView.visibleCells.forEach{ $0.setNeedsDisplay() }
+                }
+                sender.scale = 1.0
+            default: break
+        }
     }
     
     // MARK: - UICollectionViewDataSource
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        imageUrlCollection.count
+        collection.count
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let cellWidth = (collectionView.bounds.size.width - 0.1 - spaceAroundItems*(cellsInRow+1)) / cellsInRow
-        let cellHeight = imageUrlCollection[indexPath.item].aspectRatio * cellWidth
+        let cellHeight = collection[indexPath.item].aspectRatio * cellWidth
         return CGSize(width: cellWidth, height: cellHeight)
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath) as! ImageCollectionViewCell
-        cell.imageUrl = imageUrlCollection[indexPath.item].url
+        cell.imageUrl = collection[indexPath.item].url
         return cell
     }
     
@@ -91,8 +127,8 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
             if let sourseIndexPath = item.sourceIndexPath {
                 if (item.dragItem.localObject as? NSURL) != nil {
                     collectionView.performBatchUpdates { 
-                        let item = imageUrlCollection.remove(at: sourseIndexPath.item)
-                        imageUrlCollection.insert(item, at: destinationIndexPath.item)
+                        let item = _collection.remove(at: sourseIndexPath.item)
+                        _collection.insert(item, at: destinationIndexPath.item)
                         collectionView.deleteItems(at: [sourseIndexPath])
                         collectionView.insertItems(at: [destinationIndexPath])
                     }
@@ -110,7 +146,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
                     } 
                     if !pictureUrl.isEmpty && !aspectRatio.isEmpty {
                         let item = (url: pictureUrl[0], aspectRatio: aspectRatio[0])
-                        self.imageUrlCollection.insert(item, at: destinationIndexPath.item)
+                        self._collection.insert(item, at: destinationIndexPath.item)
                         
                         DispatchQueue.main.async {
                             self.collectionView.insertItems(at: [destinationIndexPath])
@@ -120,7 +156,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
                               let image = UIImage(data: data) else { print("Fail to load from URL"); return }
                         let aspectRatio = image.size.height / image.size.width
                         let item = (url: pictureUrl[0], aspectRatio: aspectRatio)
-                        self.imageUrlCollection.insert(item, at: destinationIndexPath.item)
+                        self._collection.insert(item, at: destinationIndexPath.item)
                         
                         DispatchQueue.main.async {
                             self.collectionView.insertItems(at: [destinationIndexPath])
