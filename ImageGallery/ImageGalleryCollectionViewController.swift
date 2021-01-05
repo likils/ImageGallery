@@ -10,19 +10,19 @@ import UIKit
 
 class ImageGalleryCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
     
-    weak var galleriesTVC: GalleriesTableViewController!
+    weak var galleriesTVC: GalleriesTableViewController?
     private lazy var _collection = collection {
         didSet { collection = _collection }
     }
     private var collection: [(url: URL, aspectRatio: CGFloat)] {
         get {
-            if galleriesTVC.galleriesImages[title!] != nil {
-                return galleriesTVC.galleriesImages[title!]!
+            if galleriesTVC?.galleriesImages[title!] != nil {
+                return galleriesTVC!.galleriesImages[title!]!
             } else {
                 return [(url: URL, aspectRatio: CGFloat)]()
             }
         }
-        set { galleriesTVC.galleriesImages[title!] = newValue }
+        set { galleriesTVC?.galleriesImages[title!] = newValue }
     }
 
     let spaceAroundItems: CGFloat = 8
@@ -37,7 +37,9 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
+        }
         splitViewController?.preferredDisplayMode = .primaryOverlay
         
         collectionView.dragDelegate = self
@@ -67,7 +69,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
         }
     }
     
-    // MARK: - UICollectionViewDataSource
+    // MARK: - Delegate & DataSource
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         collection.count
     }
@@ -83,10 +85,18 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
         return cell
     }
     
-    
+    // MARK: - Navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "DetailVCSegue", let detailVC = segue.destination as? DetailViewController {
+            detailVC.title = "Picture"
+            let indexPath = collectionView.indexPathsForSelectedItems![0]
+            let cell = collectionView.cellForItem(at: indexPath) as! ImageCollectionViewCell
+            detailVC.image = cell.backgroundImage
+        }
+    }
 }
 
-// MARK: - Drag&Drop Setup
+// MARK: - Drag&Drop
 extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UICollectionViewDropDelegate {
     
     // MARK: Drag items

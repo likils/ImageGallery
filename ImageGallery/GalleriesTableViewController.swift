@@ -10,13 +10,12 @@ import UIKit
 
 class GalleriesTableViewController: UITableViewController {
     
-    var initialization = true
+    private var initialization = true
     
     var galleries = [String]()
     var galleriesImages = [String: [(url: URL, aspectRatio: CGFloat)]]()
     
-    var deletedGalleries = [String]()
-    var deletedGalleriesImages = [String: [(url: URL, aspectRatio: CGFloat)]]()
+    private var deletedGalleries = [String]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,12 +25,24 @@ class GalleriesTableViewController: UITableViewController {
             ["Pinterest Gallery":
                 [(URL(string: "https://i.pinimg.com/originals/11/ab/14/11ab147894a7d2ce866ff88a4aa63655.jpg")!, 1.2361),
                  (URL(string: "https://i.pinimg.com/originals/8c/3c/05/8c3c053dad41391987706b5b270c7857.png")!, 1.25),
-                 (URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 1.7781),
-                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 0.6381),],
+                 (URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 0.6381),
+                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 1.7781)],
              
              "Water Gallery":
-                [(URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 1.7781),
-                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 0.6381),
+                [(URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 0.6381),
+                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 1.7781),
+                 (URL(string: "https://i.pinimg.com/originals/11/ab/14/11ab147894a7d2ce866ff88a4aa63655.jpg")!, 1.2361),
+                 (URL(string: "https://i.pinimg.com/originals/8c/3c/05/8c3c053dad41391987706b5b270c7857.png")!, 1.25)],
+             
+             "Pinterest Galler":
+                [(URL(string: "https://i.pinimg.com/originals/11/ab/14/11ab147894a7d2ce866ff88a4aa63655.jpg")!, 1.2361),
+                 (URL(string: "https://i.pinimg.com/originals/8c/3c/05/8c3c053dad41391987706b5b270c7857.png")!, 1.25),
+                 (URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 0.6381),
+                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 1.7781)],
+             
+             "Water Galler":
+                [(URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 0.6381),
+                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 1.7781),
                  (URL(string: "https://i.pinimg.com/originals/11/ab/14/11ab147894a7d2ce866ff88a4aa63655.jpg")!, 1.2361),
                  (URL(string: "https://i.pinimg.com/originals/8c/3c/05/8c3c053dad41391987706b5b270c7857.png")!, 1.25)]]
         
@@ -40,8 +51,7 @@ class GalleriesTableViewController: UITableViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        if initialization {
-            tableView.selectRow(at: IndexPath(row: 0, section: 0), animated: true, scrollPosition: .none)
+        if initialization && UIDevice.current.userInterfaceIdiom == .pad {
             prepare(for: UIStoryboardSegue(identifier: "GallerySegue", source: self, destination: splitViewController!.viewControllers[1]), sender: nil)
             initialization = false
         }
@@ -61,62 +71,59 @@ class GalleriesTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        44 // for better "undelete" animation
+        44
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        44
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // TODO: create custom cell with textField to rename cell via double tap
         let cell = tableView.dequeueReusableCell(withIdentifier: indexPath.section == 0 ? "GalleryCell" : "RecentlyDeleted", for: indexPath)
-        if indexPath.section == 0 {
-            cell.textLabel?.text = galleries[indexPath.row]
+        if indexPath.section == 0, let cell = cell as? GalleriesTableViewCell {
+            cell.nameTextField.text = galleries[indexPath.row]
             cell.accessoryType = .disclosureIndicator
         } else {
             cell.textLabel?.text = deletedGalleries[indexPath.row]
         }
-        
         return cell
     }
 
+    // MARK: - Table view editing
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             if indexPath.section == 0 {
-                let deletedGallery = galleries.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .left)
-                
-                deletedGalleries.append(deletedGallery)
-                tableView.insertRows(at: [IndexPath(row: deletedGalleries.count - 1, section: 1)], with: .left)
-                
-                deletedGalleriesImages[deletedGallery] = galleriesImages.removeValue(forKey: deletedGallery)
+                moveRow(at: indexPath, with: .left)
             }
             if indexPath.section == 1 {
-                let deletedGallery = deletedGalleries.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .left)
-                deletedGalleriesImages.removeValue(forKey: deletedGallery)
+                deleteGallery(atIndexPath: indexPath)
             }
+        }
+    }
+    
+    override func setEditing(_ editing: Bool, animated: Bool) {
+        super.setEditing(editing, animated: animated)
+        for i in 0..<tableView.numberOfRows(inSection: 0) {
+            cellNameEditingEnabled(editing, atRow: i)
         }
     }
     
     override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard indexPath.section == 1 else { return nil }
-        
-        let action = UIContextualAction(style: .normal, title: "Undelete") { (_, _, _) in
-            tableView.isEditing = false
-            
-            let undeletedGallery = self.deletedGalleries.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .none)
-            
-            self.galleries.append(undeletedGallery)
-            tableView.insertRows(at: [IndexPath(row: self.galleries.count - 1, section: 0)], with: .right)
-
-            self.galleriesImages[undeletedGallery] = self.deletedGalleriesImages.removeValue(forKey: undeletedGallery)
-            
+        let action = UIContextualAction(style: .normal, title: "Restore") { (_, _, _) in
+            self.moveRow(at: indexPath, with: .right)
         }
         action.backgroundColor = #colorLiteral(red: 0.1568627451, green: 0.8039215686, blue: 0.2549019608, alpha: 1)
         let actionsConfig = UISwipeActionsConfiguration(actions: [action])
         actionsConfig.performsFirstActionWithFullSwipe = true
         return actionsConfig
     }
-
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        if tableView.isEditing { checkGalleryNames() }
+    }
+    
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         let movedGallery = sourceIndexPath.section == 0 ? galleries.remove(at: sourceIndexPath.row) : deletedGalleries.remove(at: sourceIndexPath.row)
         if destinationIndexPath.section == 0 {
@@ -124,15 +131,18 @@ class GalleriesTableViewController: UITableViewController {
         } else {
             deletedGalleries.insert(movedGallery, at: destinationIndexPath.row)
         }
-        tableView.reloadData()
+        if sourceIndexPath.section != destinationIndexPath.section { tableView.reloadData() }
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section == 1 {
-            // TODO: add handlers to "Restore" and "Delete" actions
             let ac = UIAlertController(title: "Manage Gallery", message: "\"\(deletedGalleries[indexPath.row])\"", preferredStyle: .actionSheet)
-            let restore = UIAlertAction(title: "Restore", style: .default, handler: nil)
-            let delete = UIAlertAction(title: "Delete", style: .destructive, handler: nil)
+            let restore = UIAlertAction(title: "Restore", style: .default) {_ in
+                self.moveRow(at: indexPath, with: .fade)
+            }
+            let delete = UIAlertAction(title: "Delete", style: .destructive) {_ in 
+                self.deleteGallery(atIndexPath: indexPath)
+            }
             ac.addAction(restore)
             ac.addAction(delete)
             ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -156,7 +166,49 @@ class GalleriesTableViewController: UITableViewController {
 
     // MARK: - Helper methods
     @objc func addNewGallery() {
-        galleries.append("Untitled")
+        let newName = "Untitled".madeUnique(withRespectTo: galleries+deletedGalleries)
+        galleries.append(newName)
         tableView.insertRows(at: [IndexPath(row: galleries.count-1, section: 0)], with: .top)
+        cellNameEditingEnabled(tableView.isEditing, atRow: galleries.count-1)
+    }
+    
+    private func moveRow(at indexPath: IndexPath, with animation: UITableView.RowAnimation) {
+        let movedRow = indexPath.section == 0 ? galleries.remove(at: indexPath.row) : deletedGalleries.remove(at: indexPath.row)
+        tableView.deleteRows(at: [indexPath], with: animation)
+        let destination: IndexPath
+        if indexPath.section == 0 {
+            deletedGalleries.append(movedRow)
+            destination = IndexPath(row: tableView.numberOfRows(inSection: 1), section: 1)
+        } else {
+            galleries.append(movedRow)
+            destination = IndexPath(row: tableView.numberOfRows(inSection: 0), section: 0)
+        }
+        tableView.insertRows(at: [destination], with: animation)
+        cellNameEditingEnabled(false, atRow: galleries.count-1)
+    }
+    
+    private func deleteGallery(atIndexPath indexPath: IndexPath) {
+        let deletedGallery = deletedGalleries.remove(at: indexPath.row)
+        tableView.deleteRows(at: [indexPath], with: .fade)
+        galleriesImages.removeValue(forKey: deletedGallery)
+    }
+    
+    private func cellNameEditingEnabled(_ userInteraction: Bool, atRow row: Int) {
+        guard let cell = tableView.cellForRow(at: IndexPath(row: row, section: 0)) as? GalleriesTableViewCell else { return }
+        cell.nameTextField.resignFirstResponder()
+        cell.nameTextField.isUserInteractionEnabled = userInteraction
+        cell.nameTextField.borderStyle = userInteraction ? .roundedRect : .none
+    }
+    
+    private func checkGalleryNames() {
+        for row in 0..<galleries.count {
+            guard let cell = tableView.cellForRow(at: IndexPath(row: row, section: 0)) as? GalleriesTableViewCell else { return }
+            if !galleries.contains(cell.nameTextField.text!) && !deletedGalleries.contains(cell.nameTextField.text!) {
+                let oldName = galleries.remove(at: row)
+                let newName = cell.nameTextField.text!
+                galleries.insert(newName, at: row)
+                galleriesImages[newName] = galleriesImages.removeValue(forKey: oldName)
+            }
+        }
     }
 }
