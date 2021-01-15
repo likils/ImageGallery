@@ -9,5 +9,6 @@
 import UIKit
 
 class GalleriesTableViewCell: UITableViewCell {
+    
     @IBOutlet weak var nameTextField: UITextField!
 }

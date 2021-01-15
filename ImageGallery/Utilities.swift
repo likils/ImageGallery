@@ -131,6 +131,10 @@ extension UIImage
         }
         return nil
     }
+    
+    var aspectRatio: CGFloat {
+        self.size.height / self.size.width
+    }
 }
 
 extension String {

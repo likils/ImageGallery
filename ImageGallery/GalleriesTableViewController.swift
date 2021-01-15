@@ -8,14 +8,34 @@
 
 import UIKit
 
-class GalleriesTableViewController: UITableViewController {
-    
-    private var initialization = true
-    
+class GalleriesTableViewController: UITableViewController, UISplitViewControllerDelegate {
+    // MARK: Model
     var galleries = [String]()
     var galleriesImages = [String: [(url: URL, aspectRatio: CGFloat)]]()
     
     private var deletedGalleries = [String]()
+    
+    // MARK: - Initialization
+    private var initialization = true
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            splitViewController?.delegate = self
+        }
+    }
+    
+    func splitViewController(_ splitViewController: UISplitViewController, collapseSecondary secondaryViewController: UIViewController, onto primaryViewController: UIViewController) -> Bool {
+        return true
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if initialization && UIDevice.current.userInterfaceIdiom == .pad {
+            prepare(for: UIStoryboardSegue(identifier: "GallerySegue", source: self, destination: splitViewController!.viewControllers[1]), sender: nil)
+            initialization = false
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,14 +69,6 @@ class GalleriesTableViewController: UITableViewController {
         galleriesImages.keys.forEach{ galleries.append($0) }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        if initialization && UIDevice.current.userInterfaceIdiom == .pad {
-            prepare(for: UIStoryboardSegue(identifier: "GallerySegue", source: self, destination: splitViewController!.viewControllers[1]), sender: nil)
-            initialization = false
-        }
-    }
-
     // MARK: - Table view data source
     override func numberOfSections(in tableView: UITableView) -> Int {
         2
@@ -90,10 +102,22 @@ class GalleriesTableViewController: UITableViewController {
     }
 
     // MARK: - Table view editing
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        if tableView.isEditing { checkGalleryNames() }
+    }
+    
+    override func setEditing(_ editing: Bool, animated: Bool) {
+        super.setEditing(editing, animated: animated)
+        for i in 0..<galleries.count {
+            cellNameEditingEnabled(editing, atRow: i)
+        }
+    }
+    
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             if indexPath.section == 0 {
-                moveRow(at: indexPath, with: .left)
+                moveRowBetweenSections(at: indexPath, with: .left)
             }
             if indexPath.section == 1 {
                 deleteGallery(atIndexPath: indexPath)
@@ -101,27 +125,16 @@ class GalleriesTableViewController: UITableViewController {
         }
     }
     
-    override func setEditing(_ editing: Bool, animated: Bool) {
-        super.setEditing(editing, animated: animated)
-        for i in 0..<tableView.numberOfRows(inSection: 0) {
-            cellNameEditingEnabled(editing, atRow: i)
-        }
-    }
-    
     override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard indexPath.section == 1 else { return nil }
         let action = UIContextualAction(style: .normal, title: "Restore") { (_, _, _) in
-            self.moveRow(at: indexPath, with: .right)
+            self.moveRowBetweenSections(at: indexPath, with: .right)
+            self.cellNameEditingEnabled(false, atRow: self.galleries.count-1)
         }
         action.backgroundColor = #colorLiteral(red: 0.1568627451, green: 0.8039215686, blue: 0.2549019608, alpha: 1)
         let actionsConfig = UISwipeActionsConfiguration(actions: [action])
         actionsConfig.performsFirstActionWithFullSwipe = true
         return actionsConfig
-    }
-    
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        if tableView.isEditing { checkGalleryNames() }
     }
     
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
@@ -138,7 +151,8 @@ class GalleriesTableViewController: UITableViewController {
         if indexPath.section == 1 {
             let ac = UIAlertController(title: "Manage Gallery", message: "\"\(deletedGalleries[indexPath.row])\"", preferredStyle: .actionSheet)
             let restore = UIAlertAction(title: "Restore", style: .default) {_ in
-                self.moveRow(at: indexPath, with: .fade)
+                self.moveRowBetweenSections(at: indexPath, with: .fade)
+                self.cellNameEditingEnabled(false, atRow: self.galleries.count-1)
             }
             let delete = UIAlertAction(title: "Delete", style: .destructive) {_ in 
                 self.deleteGallery(atIndexPath: indexPath)
@@ -172,7 +186,7 @@ class GalleriesTableViewController: UITableViewController {
         cellNameEditingEnabled(tableView.isEditing, atRow: galleries.count-1)
     }
     
-    private func moveRow(at indexPath: IndexPath, with animation: UITableView.RowAnimation) {
+    private func moveRowBetweenSections(at indexPath: IndexPath, with animation: UITableView.RowAnimation) {
         let movedRow = indexPath.section == 0 ? galleries.remove(at: indexPath.row) : deletedGalleries.remove(at: indexPath.row)
         tableView.deleteRows(at: [indexPath], with: animation)
         let destination: IndexPath
@@ -184,7 +198,6 @@ class GalleriesTableViewController: UITableViewController {
             destination = IndexPath(row: tableView.numberOfRows(inSection: 0), section: 0)
         }
         tableView.insertRows(at: [destination], with: animation)
-        cellNameEditingEnabled(false, atRow: galleries.count-1)
     }
     
     private func deleteGallery(atIndexPath indexPath: IndexPath) {
