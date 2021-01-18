@@ -94,6 +94,9 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         let cell = tableView.dequeueReusableCell(withIdentifier: indexPath.section == 0 ? "GalleryCell" : "RecentlyDeleted", for: indexPath)
         if indexPath.section == 0, let cell = cell as? GalleriesTableViewCell {
             cell.nameTextField.text = galleries[indexPath.row]
+            cell.textFieldEndEditing = { [weak self] in
+                self?.checkGalleryNames()
+            }
             cell.accessoryType = .disclosureIndicator
         } else {
             cell.textLabel?.text = deletedGalleries[indexPath.row]
@@ -216,11 +219,16 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
     private func checkGalleryNames() {
         for row in 0..<galleries.count {
             guard let cell = tableView.cellForRow(at: IndexPath(row: row, section: 0)) as? GalleriesTableViewCell else { return }
-            if !galleries.contains(cell.nameTextField.text!) && !deletedGalleries.contains(cell.nameTextField.text!) {
+            let cellText = cell.nameTextField.text!
+            if !galleries.contains(cellText) && !deletedGalleries.contains(cellText) {
                 let oldName = galleries.remove(at: row)
-                let newName = cell.nameTextField.text!
-                galleries.insert(newName, at: row)
-                galleriesImages[newName] = galleriesImages.removeValue(forKey: oldName)
+                galleries.insert(cellText, at: row)
+                galleriesImages[cellText] = galleriesImages.removeValue(forKey: oldName)
+            } else if cellText != galleries[row] {
+                let ac = UIAlertController(title: "This name \"\(cellText)\" was already used.", message: "Please, enter another name.", preferredStyle: .alert)
+                ac.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                present(ac, animated: true, completion: nil)
+                cell.nameTextField.text = galleries[row]
             }
         }
     }
