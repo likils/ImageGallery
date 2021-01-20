@@ -17,6 +17,7 @@
 		249921CE255E695E00815FEF /* ImageCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249921CD255E695E00815FEF /* ImageCollectionViewCell.swift */; };
 		249921D0255E8ACB00815FEF /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249921CF255E8ACB00815FEF /* Utilities.swift */; };
 		249BAD33258C7C250024D511 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 249BAD32258C7C240024D511 /* DetailViewController.swift */; };
+		24DE789425B5D90700A8181D /* AddImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DE789325B5D90600A8181D /* AddImageViewController.swift */; };
 		24FB2C4825A31AD000DD7A0B /* GalleriesTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24FB2C4725A31AD000DD7A0B /* GalleriesTableViewCell.swift */; };
 /* End PBXBuildFile section */
 
@@ -33,6 +34,7 @@
 		249921CD255E695E00815FEF /* ImageCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCollectionViewCell.swift; sourceTree = "<group>"; };
 		249921CF255E8ACB00815FEF /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		249BAD32258C7C240024D511 /* DetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
+		24DE789325B5D90600A8181D /* AddImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddImageViewController.swift; sourceTree = "<group>"; };
 		24FB2C4725A31AD000DD7A0B /* GalleriesTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleriesTableViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -73,6 +75,7 @@
 				24FB2C4725A31AD000DD7A0B /* GalleriesTableViewCell.swift */,
 				249921C9255E682D00815FEF /* ImageGalleryCollectionViewController.swift */,
 				249921CD255E695E00815FEF /* ImageCollectionViewCell.swift */,
+				24DE789325B5D90600A8181D /* AddImageViewController.swift */,
 				249BAD32258C7C240024D511 /* DetailViewController.swift */,
 				249921BB255E675500815FEF /* Main.storyboard */,
 				249921BE255E675E00815FEF /* Assets.xcassets */,
@@ -154,6 +157,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				249921D0255E8ACB00815FEF /* Utilities.swift in Sources */,
+				24DE789425B5D90700A8181D /* AddImageViewController.swift in Sources */,
 				249921CC255E68DA00815FEF /* GalleriesTableViewController.swift in Sources */,
 				24FB2C4825A31AD000DD7A0B /* GalleriesTableViewCell.swift in Sources */,
 				249921CE255E695E00815FEF /* ImageCollectionViewCell.swift in Sources */,

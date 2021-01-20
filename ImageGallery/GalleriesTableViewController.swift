@@ -11,7 +11,7 @@ import UIKit
 class GalleriesTableViewController: UITableViewController, UISplitViewControllerDelegate {
     // MARK: Model
     var galleries = [String]()
-    var galleriesImages = [String: [(url: URL, aspectRatio: CGFloat)]]()
+    var galleriesImages = [String: [UIImage]]()
     
     private var deletedGalleries = [String]()
     
@@ -41,32 +41,7 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         super.viewDidLoad()
         navigationItem.leftBarButtonItem = editButtonItem
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewGallery))
-        galleriesImages =
-            ["Pinterest Gallery":
-                [(URL(string: "https://i.pinimg.com/originals/11/ab/14/11ab147894a7d2ce866ff88a4aa63655.jpg")!, 1.2361),
-                 (URL(string: "https://i.pinimg.com/originals/8c/3c/05/8c3c053dad41391987706b5b270c7857.png")!, 1.25),
-                 (URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 0.6381),
-                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 1.7781)],
-             
-             "Water Gallery":
-                [(URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 0.6381),
-                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 1.7781),
-                 (URL(string: "https://i.pinimg.com/originals/11/ab/14/11ab147894a7d2ce866ff88a4aa63655.jpg")!, 1.2361),
-                 (URL(string: "https://i.pinimg.com/originals/8c/3c/05/8c3c053dad41391987706b5b270c7857.png")!, 1.25)],
-             
-             "Pinterest Galler":
-                [(URL(string: "https://i.pinimg.com/originals/11/ab/14/11ab147894a7d2ce866ff88a4aa63655.jpg")!, 1.2361),
-                 (URL(string: "https://i.pinimg.com/originals/8c/3c/05/8c3c053dad41391987706b5b270c7857.png")!, 1.25),
-                 (URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 0.6381),
-                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 1.7781)],
-             
-             "Water Galler":
-                [(URL(string: "https://img2.goodfon.ru/wallpaper/nbig/3/31/podvodnyy-mir-underwater-voda.jpg")!, 0.6381),
-                 (URL(string: "https://wallpapershome.ru/images/pages/pic_v/386.jpg")!, 1.7781),
-                 (URL(string: "https://i.pinimg.com/originals/11/ab/14/11ab147894a7d2ce866ff88a4aa63655.jpg")!, 1.2361),
-                 (URL(string: "https://i.pinimg.com/originals/8c/3c/05/8c3c053dad41391987706b5b270c7857.png")!, 1.25)]]
-        
-        galleriesImages.keys.forEach{ galleries.append($0) }
+        if galleries.isEmpty { addNewGallery() }
     }
     
     // MARK: - Table view data source
@@ -132,7 +107,10 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         guard indexPath.section == 1 else { return nil }
         let action = UIContextualAction(style: .normal, title: "Restore") { (_, _, _) in
             self.moveRowBetweenSections(at: indexPath, with: .right)
-            self.cellNameEditingEnabled(false, atRow: self.galleries.count-1)
+            
+            // disable editing textField after swipe
+            self.cellNameEditingEnabled(false, atRow: self.galleries.count-1) // for iphone
+            self.tableView.isEditing = false // for ipad
         }
         action.backgroundColor = #colorLiteral(red: 0.1568627451, green: 0.8039215686, blue: 0.2549019608, alpha: 1)
         let actionsConfig = UISwipeActionsConfiguration(actions: [action])
@@ -225,10 +203,15 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
                 galleries.insert(cellText, at: row)
                 galleriesImages[cellText] = galleriesImages.removeValue(forKey: oldName)
             } else if cellText != galleries[row] {
+                cell.nameTextField.text = self.galleries[row]
+                cell.nameTextField.textColor = .red
                 let ac = UIAlertController(title: "This name \"\(cellText)\" was already used.", message: "Please, enter another name.", preferredStyle: .alert)
-                ac.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-                present(ac, animated: true, completion: nil)
-                cell.nameTextField.text = galleries[row]
+                ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                    self.setEditing(true, animated: true)
+                    cell.nameTextField.becomeFirstResponder()
+                    cell.nameTextField.textColor = .black
+                })
+                present(ac, animated: true)
             }
         }
     }

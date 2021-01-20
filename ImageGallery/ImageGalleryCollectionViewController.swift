@@ -8,16 +8,16 @@
 
 import UIKit
 
-class ImageGalleryCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
+class ImageGalleryCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, UIPopoverPresentationControllerDelegate {
     
     weak var galleriesTVC: GalleriesTableViewController?
     
-    private var collection: [(url: URL, aspectRatio: CGFloat)] {
+    var collection: [UIImage] {
         get {
             if let gallery = galleriesTVC?.galleriesImages[title!] {
                 return gallery
             } else {
-                return [(url: URL, aspectRatio: CGFloat)]()
+                return [UIImage]()
             }
         }
         set {
@@ -45,15 +45,18 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
         collectionView.dropDelegate = self
         collectionView.dragInteractionEnabled = true // for iphone
         
-        let addBarItem = UIBarButtonItem(image: nil, landscapeImagePhone: nil, style: .plain, target: self, action: #selector(addPicture))
-        addBarItem.title = "➕"
-        let deleteBarItem = UIBarButtonItem(customView: UIView(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 40, height: 30))))
-        let label = UILabel(frame: deleteBarItem.customView!.frame)
-        label.textAlignment = .center
-        label.text = "🗑"
-        deleteBarItem.customView?.addSubview(label)
+        let deleteBarItem = UIBarButtonItem(customView: UIView(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 56, height: 44))))
+        let imageView = UIImageView(frame: CGRect(origin: CGPoint.zero, size: deleteBarItem.customView!.frame.size))
+        deleteBarItem.customView?.addSubview(imageView)
+        if #available(iOS 13.0, *) {
+            imageView.image = UIImage(systemName: "trash")
+            imageView.contentMode = .right
+        } else {
+            imageView.image = UIImage(named: "trash")
+            imageView.contentMode = .scaleAspectFit
+        }
         deleteBarItem.customView?.addInteraction(UIDropInteraction(delegate: self))
-        navigationItem.rightBarButtonItems = [addBarItem, deleteBarItem]
+        navigationItem.rightBarButtonItems? += [deleteBarItem]
         
         flowLayout.sectionInset = UIEdgeInsets(top: spaceAroundItems, left: spaceAroundItems, bottom: spaceAroundItems, right: spaceAroundItems)
         flowLayout.minimumLineSpacing = spaceAroundItems
@@ -79,10 +82,6 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
         }
     }
     
-    @objc func addPicture() {
-        // TODO: Setup ability to add pictures from camera and photos app
-    }
-    
     // MARK: - Delegate & DataSource
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         collection.count
@@ -95,7 +94,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath) as! ImageCollectionViewCell
-        cell.imageUrl = collection[indexPath.item].url
+        cell.backgroundImage = collection[indexPath.item]
         return cell
     }
     
@@ -107,6 +106,16 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
             let cell = collectionView.cellForItem(at: indexPath) as! ImageCollectionViewCell
             detailVC.image = cell.backgroundImage
         }
+        if segue.identifier == "AddImageSegue",
+           let destination = segue.destination.contents as? AddImageViewController,
+           let ppc = destination.popoverPresentationController {
+            destination.collectionVC = self
+            ppc.delegate = self // for iphone like ipad popover
+        }
+    }
+    
+    func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
+        return .none // for iphone like ipad popover
     }
 }
 
@@ -125,7 +134,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
     
     private func dragItems(at indexPath: IndexPath) -> [UIDragItem] {
         var dragItems = [UIDragItem]()
-        let item = (collectionView.cellForItem(at: indexPath) as! ImageCollectionViewCell).imageUrl! as NSURL
+        let item = (collectionView.cellForItem(at: indexPath) as! ImageCollectionViewCell).backgroundImage! as UIImage
         let itemForDrag = UIDragItem(itemProvider: NSItemProvider(object: item))
         itemForDrag.localObject = item
         dragItems.append(itemForDrag)
@@ -134,7 +143,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
     
     // MARK: Drop items to collection
     func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool {
-        session.canLoadObjects(ofClass: NSURL.self) || session.canLoadObjects(ofClass: UIImage.self)
+        session.canLoadObjects(ofClass: UIImage.self)
     }
     
     func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal {
@@ -143,12 +152,9 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
     }
     
     func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
-        let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(item: 0, section: 0)
-        var pictureUrl = [URL]()
-        var aspectRatio = [CGFloat]()
-        for (index, item) in coordinator.items.enumerated() {
-            if let sourceIndexPath = item.sourceIndexPath {
-                if (item.dragItem.localObject as? NSURL) != nil {
+        let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(item: collection.count, section: 0)
+        for item in coordinator.items {
+            if let sourceIndexPath = item.sourceIndexPath, (item.dragItem.localObject as? UIImage) != nil {
                     collectionView.performBatchUpdates { 
                         let item = collection.remove(at: sourceIndexPath.item)
                         collection.insert(item, at: destinationIndexPath.item)
@@ -156,31 +162,12 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
                         collectionView.insertItems(at: [destinationIndexPath])
                     }
                     coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
-                }
+                
             } else {
                 item.dragItem.itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
                     if let image = provider as? UIImage {
-                        aspectRatio.append(image.aspectRatio)
-                    }
-                }
-                item.dragItem.itemProvider.loadObject(ofClass: NSURL.self) { (provider, error) in
-                    if let url = provider as? URL {
-                        pictureUrl.append(url.imageURL)
-                    } 
-                    if !pictureUrl.isEmpty && !aspectRatio.isEmpty {
-                        let item = (url: pictureUrl[index], aspectRatio: aspectRatio[index])
                         DispatchQueue.main.async {
-                            self.collection.insert(item, at: destinationIndexPath.item)
-                            self.collectionView.insertItems(at: [destinationIndexPath])
-                        }
-                    } else if !pictureUrl.isEmpty && aspectRatio.isEmpty {
-                        guard let data = try? Data(contentsOf: pictureUrl[index].imageURL),
-                              let image = UIImage(data: data)
-                        else { print("Fail to load from URL"); return }
-                        
-                        let item = (url: pictureUrl[index], aspectRatio: image.aspectRatio)
-                        DispatchQueue.main.async {
-                            self.collection.insert(item, at: destinationIndexPath.item)
+                            self.collection.insert(image, at: destinationIndexPath.item)
                             self.collectionView.insertItems(at: [destinationIndexPath])
                         }
                     }
@@ -201,8 +188,8 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
     func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
         guard session.localDragSession != nil else { return }
         session.items.forEach {
-            if let object = $0.localObject as? URL,
-               let index = collection.firstIndex(where: { $0.url == object }) {
+            if let object = $0.localObject as? UIImage,
+               let index = collection.firstIndex(where: { $0 == object }) {
                 collection.remove(at: index)
                 collectionView.deleteItems(at: [IndexPath(item: index, section: 0)])
             }
