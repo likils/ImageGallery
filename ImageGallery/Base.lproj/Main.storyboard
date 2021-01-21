@@ -83,7 +83,7 @@
         <!--Image Gallery Collection View Controller-->
         <scene sceneID="p0L-Vd-7jj">
             <objects>
-                <collectionViewController id="KXb-1f-leG" customClass="ImageGalleryCollectionViewController" customModule="ImageGallery" customModuleProvider="target" sceneMemberID="viewController">
+                <collectionViewController storyboardIdentifier="ImageGalleryCollectionVC" id="KXb-1f-leG" customClass="ImageGalleryCollectionViewController" customModule="ImageGallery" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="nhv-DX-DQK">
                         <rect key="frame" x="0.0" y="0.0" width="703.5" height="768"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -148,14 +148,14 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Uya-vG-Q01">
-                                                    <rect key="frame" x="91" y="0.0" width="268" height="60"/>
+                                                    <rect key="frame" x="55" y="0.0" width="304" height="60"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" image="photo" adjustsImageSizeForAccessibilityContentSizeCategory="YES" id="vnK-XB-wuK">
-                                                    <rect key="frame" x="16" y="0.0" width="60" height="60"/>
+                                                    <rect key="frame" x="16" y="20.5" width="24" height="19"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                 </imageView>
                                             </subviews>
@@ -267,7 +267,7 @@
         <segue reference="6gQ-be-QQ7"/>
     </inferredMetricsTieBreakers>
     <resources>
-        <image name="photo" width="512" height="512"/>
+        <image name="photo" width="24" height="19"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

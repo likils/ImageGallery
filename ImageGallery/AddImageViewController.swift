@@ -10,7 +10,7 @@ import UIKit
 import MobileCoreServices
 
 class AddImageViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIPopoverPresentationControllerDelegate {
-    
+    // MARK: Properties
     weak var collectionVC: ImageGalleryCollectionViewController?
     
     var cells: [(UIImage?, String)] {
@@ -25,6 +25,7 @@ class AddImageViewController: UIViewController, UITableViewDelegate, UITableView
         didSet { tableView.isScrollEnabled = false }
     }
     
+    // MARK: - View size setting
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         let cell = tableView.visibleCells[1]
@@ -33,6 +34,7 @@ class AddImageViewController: UIViewController, UITableViewDelegate, UITableView
         preferredContentSize = CGSize(width: width*1.4, height: height*CGFloat(tableView.visibleCells.count) - 1)
     }
     
+    // MARK: - Table View DataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         2
     }
@@ -63,7 +65,7 @@ class AddImageViewController: UIViewController, UITableViewDelegate, UITableView
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let image = (info[UIImagePickerController.InfoKey.editedImage] ?? info[UIImagePickerController.InfoKey.originalImage]) as? UIImage {
-            collectionVC?.collection.insert(image, at: 0)
+            collectionVC?.gallery.insert(image, at: 0)
             collectionVC?.collectionView.reloadSections(IndexSet(integer: 0))
         }
         picker.presentingViewController?.dismiss(animated: true)

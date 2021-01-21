@@ -9,7 +9,7 @@
 import UIKit
 
 class DetailViewController: UIViewController, UIScrollViewDelegate {
-    
+    // MARK: Image display setup
     var image: UIImage?
     
     @IBOutlet weak var scrollView: UIScrollView! {
@@ -46,6 +46,7 @@ class DetailViewController: UIViewController, UIScrollViewDelegate {
         navigationController?.hidesBarsOnTap = false
     }
     
+    // MARK: - ScrollView zoom setup
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
         scrollViewHeight.constant = scrollView.contentSize.height
         scrollViewWidth.constant = scrollView.contentSize.width
