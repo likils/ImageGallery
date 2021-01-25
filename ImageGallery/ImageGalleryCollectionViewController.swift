@@ -22,6 +22,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
         }
         set {
             galleriesTVC?.galleriesImages[title!] = newValue
+            stubLabel.text = nil
         }
     }
 
@@ -35,6 +36,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
     }
     
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
+    @IBOutlet weak var stubLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,14 +45,15 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
             splitViewController?.preferredDisplayMode = .primaryOverlay
         }
         
+        stubLabel.text = galleriesTVC == nil ? "Add gallery": gallery.isEmpty ? "Add or Drag & Drop Image here" : nil
+        
+        setupInteraction()
+        setupFlow()
+    }
+    
+    private func setupInteraction() {
         if galleriesTVC == nil {
             navigationItem.rightBarButtonItems = nil
-            let label = UILabel(frame: collectionView.superview!.frame)
-            label.text = "Choose gallery"
-            label.textColor = .gray
-            label.font.withSize(17)
-            label.textAlignment = .center
-            collectionView.superview!.addSubview(label)
         } else {
             collectionView.dragDelegate = self
             collectionView.dropDelegate = self
@@ -69,15 +72,17 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
             deleteBarItem.customView?.addInteraction(UIDropInteraction(delegate: self))
             navigationItem.rightBarButtonItems? += [deleteBarItem]
             
-            flowLayout.sectionInset = UIEdgeInsets(top: spaceAroundItems, left: spaceAroundItems, bottom: spaceAroundItems, right: spaceAroundItems)
-            flowLayout.minimumLineSpacing = spaceAroundItems
-            flowLayout.minimumInteritemSpacing = spaceAroundItems
-            
-            cellWidth = (collectionView.bounds.size.width - 0.1 - spaceAroundItems*(cellsInRow+1)) / cellsInRow
-            
             let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(resizeCells))
             collectionView.addGestureRecognizer(pinchGesture)
         }
+    }
+        
+    private func setupFlow() {
+        flowLayout.sectionInset = UIEdgeInsets(top: spaceAroundItems, left: spaceAroundItems, bottom: spaceAroundItems, right: spaceAroundItems)
+        flowLayout.minimumLineSpacing = spaceAroundItems
+        flowLayout.minimumInteritemSpacing = spaceAroundItems
+        
+        cellWidth = (collectionView.bounds.size.width - 0.1 - spaceAroundItems*(cellsInRow+1)) / cellsInRow
     }
     
     // MARK: - Actions
@@ -167,14 +172,14 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
         let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(item: gallery.count, section: 0)
         for item in coordinator.items {
             if let sourceIndexPath = item.sourceIndexPath, (item.dragItem.localObject as? UIImage) != nil {
-                    collectionView.performBatchUpdates { 
-                        let item = gallery.remove(at: sourceIndexPath.item)
-                        gallery.insert(item, at: destinationIndexPath.item)
-                        collectionView.deleteItems(at: [sourceIndexPath])
-                        collectionView.insertItems(at: [destinationIndexPath])
-                    }
-                    coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
-                
+                guard coordinator.destinationIndexPath != nil else { return }
+                let image = gallery.remove(at: sourceIndexPath.item)
+                gallery.insert(image, at: destinationIndexPath.item)
+                collectionView.performBatchUpdates {
+                    collectionView.deleteItems(at: [sourceIndexPath])
+                    collectionView.insertItems(at: [destinationIndexPath])
+                }
+                coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
             } else {
                 item.dragItem.itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
                     if let image = provider as? UIImage {
@@ -204,6 +209,9 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
                let index = gallery.firstIndex(where: { $0 == object }) {
                 gallery.remove(at: index)
                 collectionView.deleteItems(at: [IndexPath(item: index, section: 0)])
+            }
+            if gallery.isEmpty {
+                stubLabel.text = "Add or Drag & Drop Image here"
             }
         }
     }
