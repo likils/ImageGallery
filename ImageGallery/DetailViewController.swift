@@ -36,9 +36,9 @@ class DetailViewController: UIViewController, UIScrollViewDelegate {
             navigationController?.isNavigationBarHidden = true
             navigationController?.hidesBarsOnTap = true
         }
-        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(fitImage))
-        doubleTapGesture.numberOfTouchesRequired = 2
-        view.addGestureRecognizer(doubleTapGesture)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(fitImage))
+        tapGesture.numberOfTouchesRequired = 2
+        view.addGestureRecognizer(tapGesture)
     }
     
     override func viewWillDisappear(_ animated: Bool) {

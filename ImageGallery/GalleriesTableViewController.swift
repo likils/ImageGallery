@@ -9,13 +9,22 @@
 import UIKit
 
 class GalleriesTableViewController: UITableViewController, UISplitViewControllerDelegate {
-    // MARK: Model
-    var galleries = [String]()
-    var galleriesImages = [String: [UIImage]]()
+    // MARK: Properties
+    var imageGalleries = ImageGalleries()
     
-    private var deletedGalleries = [String]()
+    private var galleries: [String] {
+        get { imageGalleries.galleries }
+        set { imageGalleries.galleries = newValue }
+    }
+    private var deletedGalleries: [String] {
+        get { imageGalleries.deletedGalleries }
+        set { imageGalleries.deletedGalleries = newValue }
+    }
     
-    // TODO: - Add persistance
+    var galleriesImages: [String: [UIImage]] {
+        get { imageGalleries.galleriesImages }
+        set { imageGalleries.galleriesImages = newValue }
+    }
     
     // MARK: - Launch
     override func awakeFromNib() {
@@ -86,7 +95,7 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
             cellNameEditingEnabled(editing, at: i)
         }
         
-        // autoselection for iPad
+        /// autoselection for iPad
         if tableView.indexPathForSelectedRow == nil {
             showSelection()
         }
@@ -108,9 +117,9 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         let action = UIContextualAction(style: .normal, title: "Restore") { (_, _, _) in
             self.moveRowBetweenSections(at: indexPath, with: .right)
             
-            // disable editing textField after swipe
-            self.cellNameEditingEnabled(false, at: self.galleries.count-1) // for iphone
-            self.tableView.isEditing = false // for ipad
+            /// disable editing textField after swipe
+            self.cellNameEditingEnabled(false, at: self.galleries.count-1) /// for iphone
+            self.tableView.isEditing = false /// for ipad
         }
         action.backgroundColor = #colorLiteral(red: 0.1568627451, green: 0.8039215686, blue: 0.2549019608, alpha: 1)
         let actionsConfig = UISwipeActionsConfiguration(actions: [action])
@@ -127,24 +136,15 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         if destinationIndexPath.section == 0 {
             galleries.insert(movedGallery, at: destinationIndexPath.row)
             
-            // autoselection setup for iPad
-            if sourceIndexPath == selectedGallery {
-                selectedGallery = destinationIndexPath
-            } else if let selectedGallery = selectedGallery {
-                if (sourceIndexPath.row < selectedGallery.row && selectedGallery.row <= destinationIndexPath.row) ||
-                    (destinationIndexPath.row <= selectedGallery.row && selectedGallery.row < sourceIndexPath.row) {
-                    
-                    let newIndexPathRow = sourceIndexPath.row < destinationIndexPath.row ? selectedGallery.row - 1 : selectedGallery.row + 1
-                    self.selectedGallery = IndexPath(row: newIndexPathRow, section: 0)
-                }
-            } // end
+            /// autoselection setup for iPad
+            checkIfSelectedGalleryEqualOrBetween(sourceIndexPath, and: destinationIndexPath)
             
         } else {
             deletedGalleries.insert(movedGallery, at: destinationIndexPath.row)
             tableView.reloadData()
             
-            // autoselection for iPad
-            previousOrCurrentGalleryRemoved(at: sourceIndexPath)
+            /// autoselection for iPad
+            checkIfPreviousOrSelectedGalleryRemoved(at: sourceIndexPath)
         }
     }
     
@@ -154,7 +154,7 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
             let restore = UIAlertAction(title: "Restore", style: .default) {_ in
                 self.moveRowBetweenSections(at: indexPath, with: .fade)
                 
-                // disable editing textField after restore
+                /// disable editing textField after restore
                 self.cellNameEditingEnabled(false, at: self.galleries.count-1)
             }
             let delete = UIAlertAction(title: "Delete", style: .destructive) {_ in 
@@ -174,7 +174,7 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "GallerySegue" {
             if let imageGalleryVC = segue.destination.contents as? ImageGalleryCollectionViewController {
-                if galleries.isEmpty { // autoselection for iPad
+                if galleries.isEmpty { /// autoselection for iPad
                     imageGalleryVC.title = nil
                     imageGalleryVC.galleriesTVC = nil
                 } else {
@@ -197,7 +197,7 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         tableView.insertRows(at: [indexPath], with: .top)
         cellNameEditingEnabled(tableView.isEditing, at: galleries.count-1)
         
-        // autoselection for iPad
+        /// autoselection for iPad
         if galleries.count == 1 {
             showSelection()
             selectGallery()
@@ -216,8 +216,8 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
                 tableView.insertRows(at: [destination], with: animation)
             }
             
-            // autoselection for iPad
-            previousOrCurrentGalleryRemoved(at: indexPath)
+            /// autoselection for iPad
+            checkIfPreviousOrSelectedGalleryRemoved(at: indexPath)
             
         } else {
             if deletedGalleries.isEmpty {
@@ -227,7 +227,7 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
             let destination = IndexPath(row: tableView.numberOfRows(inSection: 0), section: 0)
             tableView.insertRows(at: [destination], with: animation)
             
-            // autoselection for iPad
+            /// autoselection for iPad
             showSelection()
             if galleries.count == 1 { selectGallery() } 
         }
@@ -242,6 +242,7 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         }
         galleriesImages.removeValue(forKey: deletedGallery)
         
+        /// autoselection for iPad
         showSelection()
     }
     
@@ -277,7 +278,10 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
     // MARK: - Autoselection for iPad
     private var firstLaunch = true
     
-    private var selectedGallery: IndexPath?
+    private var selectedGallery: IndexPath? {
+        get { imageGalleries.selectedGallery != nil ? IndexPath(row: imageGalleries.selectedGallery!, section: 0) : nil }
+        set { imageGalleries.selectedGallery = newValue?.row }
+    }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -307,7 +311,20 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         tableView.selectRow(at: selectedGallery, animated: true, scrollPosition: .none)
     }
     
-    private func previousOrCurrentGalleryRemoved(at indexPath: IndexPath) {
+    private func checkIfSelectedGalleryEqualOrBetween(_ sourceIndexPath: IndexPath, and destinationIndexPath: IndexPath) {
+        if sourceIndexPath == selectedGallery {
+            selectedGallery = destinationIndexPath
+        } else if let selectedGallery = selectedGallery {
+            if (sourceIndexPath.row < selectedGallery.row && selectedGallery.row <= destinationIndexPath.row) ||
+                (destinationIndexPath.row <= selectedGallery.row && selectedGallery.row < sourceIndexPath.row) {
+                
+                let newIndexPathRow = sourceIndexPath.row < destinationIndexPath.row ? selectedGallery.row - 1 : selectedGallery.row + 1
+                self.selectedGallery = IndexPath(row: newIndexPathRow, section: 0)
+            }
+        }
+    }
+    
+    private func checkIfPreviousOrSelectedGalleryRemoved(at indexPath: IndexPath) {
         guard UIDevice.current.userInterfaceIdiom == .pad else { return }
         if let selectedGallery = selectedGallery, indexPath.row <= selectedGallery.row {
             if selectedGallery.row > 0 {

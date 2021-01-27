@@ -10,13 +10,6 @@ import UIKit
 
 class ImageCollectionViewCell: UICollectionViewCell {
     
-    var backgroundImage: UIImage? {
-        didSet {
-            setNeedsDisplay()
-        }
-    }
+    @IBOutlet weak var imageView: UIImageView!
     
-    override func draw(_ rect: CGRect) {
-        backgroundImage?.draw(in: bounds)
-    }
 }

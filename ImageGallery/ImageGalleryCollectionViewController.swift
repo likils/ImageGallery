@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ImageGalleryCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, UIPopoverPresentationControllerDelegate {
+class ImageGalleryCollectionViewController: UICollectionViewController, UIPopoverPresentationControllerDelegate {
     // MARK: Properties
     weak var galleriesTVC: GalleriesTableViewController?
     
@@ -29,9 +29,12 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
     // MARK: - Collection display setup
     private let spaceAroundItems: CGFloat = 8
     private var cellsInRow: CGFloat = 3
+    private let minimumCellWidth : CGFloat = 50     /// limit of cells in row
     private var cellWidth: CGFloat! {
         didSet {
-            cellsInRow = collectionView.bounds.size.width/cellWidth.rounded(.down)
+            if cellWidth >= minimumCellWidth { 
+                cellsInRow = ((collectionView.bounds.size.width - spaceAroundItems*(cellsInRow+1))/cellWidth).rounded(.down)
+            }
         }
     }
     
@@ -81,8 +84,8 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
         flowLayout.sectionInset = UIEdgeInsets(top: spaceAroundItems, left: spaceAroundItems, bottom: spaceAroundItems, right: spaceAroundItems)
         flowLayout.minimumLineSpacing = spaceAroundItems
         flowLayout.minimumInteritemSpacing = spaceAroundItems
-        
-        cellWidth = (collectionView.bounds.size.width - 0.1 - spaceAroundItems*(cellsInRow+1)) / cellsInRow
+        cellWidth = (collectionView.bounds.size.width - spaceAroundItems*(cellsInRow+1)) / cellsInRow
+        flowLayout.itemSize = CGSize(width: cellWidth, height: cellWidth)
     }
     
     // MARK: - Actions
@@ -91,8 +94,14 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
             case .changed, .ended:
                 if (cellWidth * sender.scale) <= (collectionView.bounds.size.width - spaceAroundItems*2) {
                     cellWidth *= sender.scale
-                    flowLayout.invalidateLayout()
-                    collectionView.visibleCells.forEach{ $0.setNeedsDisplay() }
+                    flowLayout.itemSize = CGSize(width: cellWidth, height: cellWidth)
+                    if sender.state == .ended {
+                        if cellWidth < minimumCellWidth { cellWidth = minimumCellWidth }
+                        cellWidth = (collectionView.bounds.size.width - spaceAroundItems*(cellsInRow+1)) / cellsInRow
+                        UIView.animate(withDuration: 0.7) { 
+                            self.flowLayout.itemSize = CGSize(width: self.cellWidth, height: self.cellWidth)
+                        }
+                    }
                 }
                 sender.scale = 1.0
             default: break
@@ -103,15 +112,10 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         gallery.count
     }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let cellHeight = gallery[indexPath.item].aspectRatio * cellWidth
-        return CGSize(width: cellWidth, height: cellHeight)
-    }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath) as! ImageCollectionViewCell
-        cell.backgroundImage = gallery[indexPath.item]
+        cell.imageView.image = gallery[indexPath.item]
         return cell
     }
     
@@ -121,7 +125,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UICollec
             detailVC.title = "Picture"
             let indexPath = collectionView.indexPathsForSelectedItems![0]
             let cell = collectionView.cellForItem(at: indexPath) as! ImageCollectionViewCell
-            detailVC.image = cell.backgroundImage
+            detailVC.image = cell.imageView.image
         }
         if segue.identifier == "AddImageSegue",
            let destination = segue.destination.contents as? AddImageViewController,
@@ -151,7 +155,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
     
     private func dragItems(at indexPath: IndexPath) -> [UIDragItem] {
         var dragItems = [UIDragItem]()
-        let item = (collectionView.cellForItem(at: indexPath) as! ImageCollectionViewCell).backgroundImage! as UIImage
+        let item = (collectionView.cellForItem(at: indexPath) as! ImageCollectionViewCell).imageView.image! as UIImage
         let itemForDrag = UIDragItem(itemProvider: NSItemProvider(object: item))
         itemForDrag.localObject = item
         dragItems.append(itemForDrag)

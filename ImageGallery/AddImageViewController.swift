@@ -69,7 +69,7 @@ class AddImageViewController: UIViewController, UITableViewDelegate, UITableView
             collectionVC?.collectionView.reloadSections(IndexSet(integer: 0))
         }
         picker.presentingViewController?.dismiss(animated: true)
-        presentingViewController?.dismiss(animated: true)
+        self.presentingViewController?.dismiss(animated: true)
     }
     
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
