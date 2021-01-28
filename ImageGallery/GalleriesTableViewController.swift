@@ -160,6 +160,7 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section == 1 {
             let ac = UIAlertController(title: "Manage Gallery", message: "\"\(deletedGalleries[indexPath.row])\"", preferredStyle: .actionSheet)
+            ac.popoverPresentationController?.sourceView = tableView.cellForRow(at: indexPath)?.textLabel
             let restore = UIAlertAction(title: "Restore", style: .default) {_ in
                 self.moveRowBetweenSections(at: indexPath, with: .fade)
                 
@@ -203,15 +204,12 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         let newName = "Untitled".madeUnique(withRespectTo: galleries+deletedGalleries)
         galleries.append(newName)
         let indexPath = IndexPath(row: galleries.count-1, section: 0)
-        if #available(iOS 13.0, *) {
-            tableView.insertRows(at: [indexPath], with: .top)
+        if galleries.count == 1 && deletedGalleries.isEmpty && UIDevice.current.userInterfaceIdiom == .pad {   // iPad throws an error if 'insertRows' in this condition. debugging in progress.
+            tableView.reloadData()
         } else {
-            if galleries.count == 1 && deletedGalleries.isEmpty {   // iPad with OS 12.5.1 throw an error if 'insertRows' in this condition
-                tableView.reloadData()
-            } else {
-                tableView.insertRows(at: [indexPath], with: .top)
-            }
+            tableView.insertRows(at: [indexPath], with: .top)
         }
+        
         cellNameEditingEnabled(tableView.isEditing, at: galleries.count-1)
         
         /// autoselection for iPad
@@ -268,9 +266,9 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
     
     private func cellNameEditingEnabled(_ userInteraction: Bool, at row: Int) {
         guard let cell = tableView.cellForRow(at: IndexPath(row: row, section: 0)) as? GalleriesTableViewCell else { return }
-        cell.nameTextField.resignFirstResponder()
         cell.nameTextField.isUserInteractionEnabled = userInteraction
         cell.nameTextField.borderStyle = userInteraction ? .roundedRect : .none
+        if !userInteraction { cell.nameTextField.resignFirstResponder() }
     }
     
     private func checkGalleryNames() {
