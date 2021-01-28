@@ -50,7 +50,7 @@ class AddImageViewController: UIViewController, UITableViewDelegate, UITableView
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let picker = UIImagePickerController()
         picker.mediaTypes = [kUTTypeImage as String]
-        picker.allowsEditing = false
+        picker.allowsEditing = true
         picker.delegate = self
         if indexPath == IndexPath(row: 0, section: 0), UIImagePickerController.isSourceTypeAvailable(.camera) {
             picker.sourceType = .camera
@@ -65,7 +65,11 @@ class AddImageViewController: UIViewController, UITableViewDelegate, UITableView
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let image = (info[UIImagePickerController.InfoKey.editedImage] ?? info[UIImagePickerController.InfoKey.originalImage]) as? UIImage {
-            collectionVC?.gallery.insert(image, at: 0)
+            let name = "\(Date().timeIntervalSince1970)"
+            do { try ImageGalleries.store(image: image, name: name) }
+            catch let error { print(error.localizedDescription) }
+            
+            collectionVC?.gallery.insert(name, at: 0)
             collectionVC?.collectionView.reloadSections(IndexSet(integer: 0))
         }
         picker.presentingViewController?.dismiss(animated: true)

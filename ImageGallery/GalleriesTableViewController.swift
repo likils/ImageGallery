@@ -10,7 +10,14 @@ import UIKit
 
 class GalleriesTableViewController: UITableViewController, UISplitViewControllerDelegate {
     // MARK: Properties
-    var imageGalleries = ImageGalleries()
+    var imageGalleries: ImageGalleries! {
+        didSet {
+            if imageGalleries != oldValue {
+                UserDefaults.standard.set(imageGalleries.json, forKey: GalleriesTableViewController.untitled)
+            }
+        }
+    }
+    private static let untitled = "ImagesGalleries.untitled"
     
     private var galleries: [String] {
         get { imageGalleries.galleries }
@@ -21,7 +28,7 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         set { imageGalleries.deletedGalleries = newValue }
     }
     
-    var galleriesImages: [String: [UIImage]] {
+    var galleriesImages: [String: [String]] {
         get { imageGalleries.galleriesImages }
         set { imageGalleries.galleriesImages = newValue }
     }
@@ -42,6 +49,8 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         super.viewDidLoad()
         navigationItem.leftBarButtonItem = editButtonItem
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addNewGallery))
+        
+        imageGalleries = ImageGalleries(json: UserDefaults.standard.data(forKey: GalleriesTableViewController.untitled)) ?? ImageGalleries()
     }
     
     // MARK: - TableView DataSource
@@ -194,7 +203,15 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         let newName = "Untitled".madeUnique(withRespectTo: galleries+deletedGalleries)
         galleries.append(newName)
         let indexPath = IndexPath(row: galleries.count-1, section: 0)
-        tableView.insertRows(at: [indexPath], with: .top)
+        if #available(iOS 13.0, *) {
+            tableView.insertRows(at: [indexPath], with: .top)
+        } else {
+            if galleries.count == 1 && deletedGalleries.isEmpty {   // iPad with OS 12.5.1 throw an error if 'insertRows' in this condition
+                tableView.reloadData()
+            } else {
+                tableView.insertRows(at: [indexPath], with: .top)
+            }
+        }
         cellNameEditingEnabled(tableView.isEditing, at: galleries.count-1)
         
         /// autoselection for iPad
@@ -240,7 +257,10 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         } else {
             tableView.deleteRows(at: [indexPath], with: animation)
         }
-        galleriesImages.removeValue(forKey: deletedGallery)
+        
+        if let deletedNames = galleriesImages.removeValue(forKey: deletedGallery) {
+            deletedNames.forEach { imageGalleries.checkIfImageExistInOtherGalleries(named: $0) }
+        }
         
         /// autoselection for iPad
         showSelection()

@@ -12,12 +12,12 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UIPopove
     // MARK: Properties
     weak var galleriesTVC: GalleriesTableViewController?
     
-    var gallery: [UIImage] {
+    var gallery: [String] {
         get {
             if let gallery = galleriesTVC?.galleriesImages[title!] {
                 return gallery
             } else {
-                return [UIImage]()
+                return [String]()
             }
         }
         set {
@@ -115,7 +115,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController, UIPopove
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath) as! ImageCollectionViewCell
-        cell.imageView.image = gallery[indexPath.item]
+        cell.imageName = gallery[indexPath.item]
         return cell
     }
     
@@ -155,16 +155,17 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
     
     private func dragItems(at indexPath: IndexPath) -> [UIDragItem] {
         var dragItems = [UIDragItem]()
-        let item = (collectionView.cellForItem(at: indexPath) as! ImageCollectionViewCell).imageView.image! as UIImage
-        let itemForDrag = UIDragItem(itemProvider: NSItemProvider(object: item))
-        itemForDrag.localObject = item
-        dragItems.append(itemForDrag)
+        if let item = (collectionView.cellForItem(at: indexPath) as? ImageCollectionViewCell)?.imageName as NSString? {
+            let itemForDrag = UIDragItem(itemProvider: NSItemProvider(object: item))
+            itemForDrag.localObject = item
+            dragItems.append(itemForDrag)
+        }
         return dragItems
     }
     
     // MARK: Drop items to gallery
     func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool {
-        session.canLoadObjects(ofClass: UIImage.self)
+        session.canLoadObjects(ofClass: UIImage.self) || session.canLoadObjects(ofClass: NSString.self)
     }
     
     func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal {
@@ -175,7 +176,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
     func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
         let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(item: gallery.count, section: 0)
         for item in coordinator.items {
-            if let sourceIndexPath = item.sourceIndexPath, (item.dragItem.localObject as? UIImage) != nil {
+            if let sourceIndexPath = item.sourceIndexPath, (item.dragItem.localObject as? NSString) != nil {
                 guard coordinator.destinationIndexPath != nil else { return }
                 let image = gallery.remove(at: sourceIndexPath.item)
                 gallery.insert(image, at: destinationIndexPath.item)
@@ -185,10 +186,24 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
                 }
                 coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
             } else {
+                item.dragItem.itemProvider.loadObject(ofClass: NSString.self) { (provider, error) in
+                    if let imageName = provider as? String, Double(imageName) != nil { // Double() need to not add string from external places via drag&drop
+                        DispatchQueue.main.async {
+                            self.gallery.insert(imageName, at: destinationIndexPath.item)
+                            self.collectionView.insertItems(at: [destinationIndexPath])
+                        }
+                    }
+                }
+                
                 item.dragItem.itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
                     if let image = provider as? UIImage {
+                        
+                        let name = "\(Date().timeIntervalSince1970)"
+                        do { try ImageGalleries.store(image: image, name: name) }
+                        catch let error { print(error.localizedDescription) }
+                        
                         DispatchQueue.main.async {
-                            self.gallery.insert(image, at: destinationIndexPath.item)
+                            self.gallery.insert(name, at: destinationIndexPath.item)
                             self.collectionView.insertItems(at: [destinationIndexPath])
                         }
                     }
@@ -199,7 +214,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
     
     // MARK: Delete items via deleteBarItem
     func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession) -> Bool {
-        session.canLoadObjects(ofClass: NSURL.self) || session.canLoadObjects(ofClass: UIImage.self)
+        session.canLoadObjects(ofClass: NSString.self)
     }
     
     func dropInteraction(_ interaction: UIDropInteraction, sessionDidUpdate session: UIDropSession) -> UIDropProposal {
@@ -209,9 +224,11 @@ extension ImageGalleryCollectionViewController: UICollectionViewDragDelegate, UI
     func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
         guard session.localDragSession != nil else { return }
         session.items.forEach {
-            if let object = $0.localObject as? UIImage,
+            if let object = $0.localObject as? String,
                let index = gallery.firstIndex(where: { $0 == object }) {
-                gallery.remove(at: index)
+                let name = gallery.remove(at: index)
+                galleriesTVC?.imageGalleries.checkIfImageExistInOtherGalleries(named: name)
+                
                 collectionView.deleteItems(at: [IndexPath(item: index, section: 0)])
             }
             if gallery.isEmpty {

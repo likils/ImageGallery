@@ -1,8 +1,8 @@
 //
 //  Utilities.swift
 //
-//  Created by CS193p Instructor.
-//  Copyright © 2017 Stanford University. All rights reserved.
+///  Created by CS193p Instructor.
+///  Copyright © 2017 Stanford University. All rights reserved.
 //
 
 import UIKit
