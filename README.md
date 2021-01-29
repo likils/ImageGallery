@@ -1,5 +1,4 @@
 # ImageGallery
-PetProject
 
 Hello there! :]
 This app is based on Drag&Drop technology and it's mostly for iPad, cause iPad has a Slide Over and/or Split View.
