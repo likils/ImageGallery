@@ -2,8 +2,8 @@
 //  GalleriesTableViewController.swift
 //  ImageGallery
 //
-//  Created by Nik on 13.11.2020.
-//  Copyright © 2020 Nik. All rights reserved.
+//  Created by likils on 13.11.2020.
+//  Copyright © 2020 likils. All rights reserved.
 //
 
 import UIKit
@@ -180,35 +180,12 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         }
     }
     
-    // MARK: - Navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "GallerySegue" {
-            if let imageGalleryVC = segue.destination.contents as? ImageGalleryCollectionViewController {
-                if galleries.isEmpty { /// autoselection for iPad
-                    imageGalleryVC.title = nil
-                    imageGalleryVC.galleriesTVC = nil
-                } else {
-                    let indexPath = tableView.indexPathForSelectedRow ?? selectedGallery ?? IndexPath(row: 0, section: 0)
-                    imageGalleryVC.title = galleries[indexPath.row]
-                    imageGalleryVC.galleriesTVC = self
-                    if UIDevice.current.userInterfaceIdiom == .phone {
-                        tableView.deselectRow(at: indexPath, animated: true)
-                    }
-                }
-            }
-        }
-    }
-    
     // MARK: - Helper methods
     @objc func addNewGallery() {
         let newName = "Untitled".madeUnique(withRespectTo: galleries+deletedGalleries)
         galleries.append(newName)
         let indexPath = IndexPath(row: galleries.count-1, section: 0)
-        if galleries.count == 1 && deletedGalleries.isEmpty && UIDevice.current.userInterfaceIdiom == .pad {   // iPad throws an error if 'insertRows' in this condition. debugging in progress.
-            tableView.reloadData()
-        } else {
-            tableView.insertRows(at: [indexPath], with: .top)
-        }
+        tableView.insertRows(at: [indexPath], with: .top)
         
         cellNameEditingEnabled(tableView.isEditing, at: galleries.count-1)
         
@@ -347,8 +324,30 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
         if let selectedGallery = selectedGallery, indexPath.row <= selectedGallery.row {
             if selectedGallery.row > 0 {
                 self.selectedGallery = IndexPath(row: selectedGallery.row - 1, section: 0)
+                if selectedGallery.row == indexPath.row { selectGallery() }
+            } else {
+                if galleries.isEmpty { self.selectedGallery = nil }
+                selectGallery()
             }
-            if selectedGallery.row == indexPath.row { selectGallery() }
+        }
+    }
+    
+    // MARK: - Navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "GallerySegue" {
+            if let imageGalleryVC = segue.destination.contents as? ImageGalleryCollectionViewController {
+                if galleries.isEmpty { /// autoselection for iPad
+                    imageGalleryVC.title = nil
+                    imageGalleryVC.galleriesTVC = nil
+                } else {
+                    let indexPath = tableView.indexPathForSelectedRow ?? selectedGallery ?? IndexPath(row: 0, section: 0)
+                    imageGalleryVC.title = galleries[indexPath.row]
+                    imageGalleryVC.galleriesTVC = self
+                    if UIDevice.current.userInterfaceIdiom == .phone {
+                        tableView.deselectRow(at: indexPath, animated: true)
+                    }
+                }
+            }
         }
     }
 }

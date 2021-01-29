@@ -2,8 +2,8 @@
 //  GalleriesTableViewCell.swift
 //  ImageGallery
 //
-//  Created by Nik on 04.01.2021.
-//  Copyright © 2021 Nik. All rights reserved.
+//  Created by likils on 04.01.2021.
+//  Copyright © 2021 likils. All rights reserved.
 //
 
 import UIKit

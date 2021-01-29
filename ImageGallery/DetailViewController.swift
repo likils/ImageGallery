@@ -2,8 +2,8 @@
 //  DetailViewController.swift
 //  ImageGallery
 //
-//  Created by Nik on 18.12.2020.
-//  Copyright © 2020 Nik. All rights reserved.
+//  Created by likils on 18.12.2020.
+//  Copyright © 2020 likils. All rights reserved.
 //
 
 import UIKit

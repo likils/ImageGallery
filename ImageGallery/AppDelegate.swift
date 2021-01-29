@@ -2,8 +2,8 @@
 //  AppDelegate.swift
 //  ImageGallery
 //
-//  Created by Nik on 13.11.2020.
-//  Copyright © 2020 Nik. All rights reserved.
+//  Created by likils on 13.11.2020.
+//  Copyright © 2020 likils. All rights reserved.
 //
 
 import UIKit
