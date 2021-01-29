@@ -256,6 +256,9 @@ class GalleriesTableViewController: UITableViewController, UISplitViewController
                 let oldName = galleries.remove(at: row)
                 galleries.insert(cellText, at: row)
                 galleriesImages[cellText] = galleriesImages.removeValue(forKey: oldName)
+                if let imageGalleryVC = splitViewController?.viewControllers[1].contents as? ImageGalleryCollectionViewController {
+                    if imageGalleryVC.title == oldName { imageGalleryVC.title = cellText }
+                }
             } else if cellText != galleries[row] {
                 cell.nameTextField.text = self.galleries[row]
                 cell.nameTextField.textColor = .red
